@@ -5,15 +5,24 @@
     xmlns:local="using:BTKeyboardClient"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" RequestedTheme="Dark" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="Auto" Width="1916">
+    mc:Ignorable="d" RequestedTheme="Dark" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" FocusVisualSecondaryBrush="#99000000" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Width="auto" Height="auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto"  MinWidth="1200" MinHeight="803">
     <Page.Background>
-        <AcrylicBrush TintColor="#CC000000" TintOpacity="0.8" BackgroundSource="HostBackdrop"/>
+        <AcrylicBrush TintColor="#CC000000" TintOpacity="0.8" BackgroundSource="HostBackdrop" AlwaysUseFallback="False" Opacity="1" FallbackColor="#CC000000"/>
     </Page.Background>
 
-    <Grid HorizontalAlignment="Left" Width="1000" Height="600" VerticalAlignment="Top" Margin="0,40,0,0">
-        <Button x:Name="searchButton" Content="Search" HorizontalAlignment="Left" Margin="116,0,0,54" VerticalAlignment="Bottom" Click="StartButton_Click" FontSize="36" RenderTransformOrigin="0.505,0.482" Width="274" Height="139"/>
+    <Grid Width="1206" Height="663" Margin="0,40,0,0" ScrollViewer.VerticalScrollBarVisibility="Disabled" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="229"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="991*"/>
+            <ColumnDefinition Width="918*"/>
+        </Grid.ColumnDefinitions>
 
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" Margin="5,10,0,0" BorderThickness="3,3,3,3" HorizontalAlignment="Left" Width="495" Height="325" VerticalAlignment="Top">
+        <Button x:Name="searchButton" Content="Search" HorizontalAlignment="Center" VerticalAlignment="Center" Click="StartButton_Click" FontSize="36" RenderTransformOrigin="0.5,0.5" MinWidth="217" MinHeight="102" Grid.Row="1" Height="102" Width="217" Margin="0,0,0,0"/>
+
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" BorderThickness="3,3,3,3" FontSize="22" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="0,5,0,100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <ScrollViewer.BorderBrush>
                 <AcrylicBrush TintColor="#CC323131"/>
             </ScrollViewer.BorderBrush>
@@ -21,15 +30,12 @@
             <TextBlock x:Name="logBox" HorizontalAlignment="Left" Text="Start the companion app on your mobile device and press the Search button bellow to connect." TextWrapping="Wrap" VerticalAlignment="Top" Width="482" Height="Auto"/>
 
         </ScrollViewer>
-        <ListView x:Name="DevicesView" HorizontalAlignment="Right" Margin="0,10,10,0" ItemsSource="{x:Bind deviceIds}" Width="490" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Top" BorderThickness="3,3,3,3" Height="469">
+        <ListView x:Name="DevicesView" ItemsSource="{x:Bind deviceIds}" RenderTransformOrigin="0.5,0.5" BorderThickness="3,3,3,3" FontSize="24" Grid.Column="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Width="auto" VerticalAlignment="Stretch">
             <ListView.BorderBrush>
                 <AcrylicBrush TintColor="#CC323131" AlwaysUseFallback="False"/>
             </ListView.BorderBrush>
         </ListView>
-        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Right" Margin="0,0,180,20" VerticalAlignment="Bottom" Click="ConnectButton_Click" FontSize="20" Height="68" Width="149"/>
-
-
-
+        <Button x:Name="ConnectButton" Content="Connect" HorizontalAlignment="Center" VerticalAlignment="Center" Click="ConnectButton_Click" FontSize="20" Grid.Column="1" MinWidth="195" MinHeight="88" RenderTransformOrigin="0.5,0.5" Grid.Row="1" Height="88" Width="195"/>
 
     </Grid>
 </Page>

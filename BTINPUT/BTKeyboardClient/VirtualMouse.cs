@@ -13,9 +13,8 @@ namespace BTKeyboardClient
         private List<InjectedInputMouseInfo> mouseInfoList;
         private InjectedInputMouseInfo mouseInfo;
         private InputInjector inputInjector;
-        //private const int defaultMouseOptions = (int)InjectedInputMouseOptions.Move;
-        private bool isPolling = false;
-        private const int POLLING_DELAY = 10;
+        private const int SENSITIVITY_THRESHOLD = 10;
+        private const int SMOOTHING_THRESHOLD = 3;
 
         public VirtualMouse(Dictionary<Guid, GattCharacteristic> characteristicsDictionary)
         {
@@ -61,16 +60,46 @@ namespace BTKeyboardClient
 
         private void DeltaYCharacteristic_Value_Changed(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            mouseInfo.DeltaY = int.Parse(readValue(args));
-            inputInjector.InjectMouseInput(
-                new InjectedInputMouseInfo[] { mouseInfo });
+            var delta = int.Parse(readValue(args));
+            if (delta != 0)
+            {
+                if (delta > SENSITIVITY_THRESHOLD)
+                {
+                    delta = SENSITIVITY_THRESHOLD;
+                }
+                else if (delta < -SENSITIVITY_THRESHOLD)
+                {
+                    delta = -SENSITIVITY_THRESHOLD;
+                }
+
+                inputInjector.InjectMouseInput(
+                new InjectedInputMouseInfo[] { new InjectedInputMouseInfo(){
+                        DeltaY = delta
+                    }
+                });
+            }
         }
 
         private void DeltaXCharacteristic_Value_Changed(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            mouseInfo.DeltaX = int.Parse(readValue(args));
-            inputInjector.InjectMouseInput(
-                new InjectedInputMouseInfo[] { mouseInfo });
+            var delta = int.Parse(readValue(args));
+            if (delta != 0)
+            {
+                if (delta > SENSITIVITY_THRESHOLD)
+                {
+                    delta = SENSITIVITY_THRESHOLD;
+                }
+                else if (delta < -SENSITIVITY_THRESHOLD)
+                {
+                    delta = -SENSITIVITY_THRESHOLD;
+                }
+
+                inputInjector.InjectMouseInput(
+                new InjectedInputMouseInfo[] { new InjectedInputMouseInfo(){
+                        DeltaX = delta
+                    }
+                });
+            }
 
         }
 
@@ -84,29 +113,5 @@ namespace BTKeyboardClient
 
         }
 
-        //    public void beginPolling()
-        //    {
-        //        isPolling = true;
-        //        //pollingTask();
-        //    }
-
-        //    private async void pollingTask()
-        //    {
-        //        while (isPolling)
-        //        {
-
-        //            inputInjector.InjectMouseInput(
-        //                new InjectedInputMouseInfo[] { mouseInfo });
-
-        //            await Task.Delay(POLLING_DELAY);
-
-        //        }
-        //    }
-
-        //    internal void stopPolling()
-        //    {
-        //        isPolling = false;
-        //    }
-        //}
     }
 }
