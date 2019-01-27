@@ -12,6 +12,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -60,6 +61,11 @@ namespace BTKeyboardClient
         public MainPage()
         {
             this.InitializeComponent();
+            ApplicationView.PreferredLaunchViewSize = new Size(1206, 663);
+            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(1206, 663));
+            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
+            
+
             _deviceIds = new ObservableCollection<string>();
             knownDevices = new HashSet<DeviceInformation>();
         }
@@ -90,14 +96,14 @@ namespace BTKeyboardClient
             {
                 this.logBox.Text = "";
 
-                string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.Devices.Aep.IsConnected", "System.Devices.Aep.Bluetooth.Le.IsConnectable" };
+                string[] requestedProperties = {  };
                 knownDevices.Clear();
                 deviceIds.Clear();
                 if (deviceWatcher == null)
                 {
                     deviceWatcher =
                                 DeviceInformation.CreateWatcher(
-                                        BluetoothLEDevice.GetDeviceSelectorFromPairingState(false),
+                                        BluetoothLEDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Disconnected),
                                         requestedProperties,
                                         DeviceInformationKind.AssociationEndpoint);
 
@@ -173,7 +179,7 @@ namespace BTKeyboardClient
                 {
                     if (deviceIds.Contains(args.Id))
                     {
-                        logEvent(String.Format("Lost connection to device {0}", args.Id));
+                        logEvent(String.Format("Lost connection to device advertiser {0}", args.Id));
                         lock (this)
                         {
                             deviceIds.Remove(args.Id);
@@ -183,37 +189,31 @@ namespace BTKeyboardClient
             });
         }
 
-        private async void DeviceWatcher_Updated(DeviceWatcher sender, DeviceInformationUpdate args)
+        private void DeviceWatcher_Updated(DeviceWatcher sender, DeviceInformationUpdate args)
         {
 
         }
 
         private async void DeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
-            bool contains = false;
+            bool doesNotContain = false;
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 lock (this)
                 {
-                    contains = knownDevices.Contains(args);
+                    doesNotContain = knownDevices.Add(args);
                 }
             });
-            if (!contains)
+            if (doesNotContain)
             {
                 bool compatible = false;
                 try
                 {
                     compatible = await isDeviceCompatibleAsync(args);
-
-                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                    {
-                        lock (this)
-                        {
-                            knownDevices.Add(args);
-                        }
-                    });
                 }
-                catch (Exception e) { }
+                catch (Exception e) {
+                    logEvent(String.Format("Exception chcecking compatibility {0} for device {1}", e.Message, args.Name));
+                }
 
                 if (compatible)
                 {
@@ -259,7 +259,6 @@ namespace BTKeyboardClient
                 throw (new Exception(String.Format("Cannot retrive characteristics. Status: {0}, Error: {1}",
                     modeCharacteristicsResult.Status, modeCharacteristicsResult.ProtocolError)));
             }
-            var modeCharacteristics = modeCharacteristicsResult.Characteristics;
            
             return true;
         }
@@ -318,54 +317,6 @@ namespace BTKeyboardClient
                     virtualMouse = new VirtualMouse(characteristicsDictionary);
                     virtualKeyboard = new VirtualKeyboard(characteristicsDictionary);
                     virtualGamepad = new VirtualGamepad(characteristicsDictionary);
-
-                    ///////////////////////
-
-                    //var gattInputCharacteristicResult = await gattService.GetCharacteristicsForUuidAsync(inputCharacteristicGuid, BluetoothCacheMode.Uncached);
-                    //if (gattInputCharacteristicResult.Status != GattCommunicationStatus.Success)
-                    //{
-                    //    logEvent(String.Format("Cannot get input characteristic. Status {0} {1}",
-                    //        gattInputCharacteristicResult.Status, gattInputCharacteristicResult.ProtocolError));
-                    //    return;
-                    //}
-                    //gattInputCharacteristic = gattInputCharacteristicResult.Characteristics.FirstOrDefault();
-                    //logEvent(String.Format("characteristic {0} found", gattInputCharacteristic.Uuid));                   
-                    //try
-                    //{
-                    //    gattInputCharacteristic.ValueChanged += Input_Characteristic_ValueChanged;
-                    //    var subResult = await gattInputCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
-
-                    //    logEvent("SUBSCRIBED to input characteristic" + subResult.ToString());
-                    //}
-                    //catch (Exception e)
-                    //{
-                    //    logEvent("Exception subscribing to input characteristic " + e.Message);
-                    //    return;
-                    //}
-
-                    //var gattModeCharacteristicResult = await gattService.GetCharacteristicsForUuidAsync(modeCharacteristicGuid, BluetoothCacheMode.Uncached);
-                    //if (gattModeCharacteristicResult.Status != GattCommunicationStatus.Success)
-                    //{
-                    //    logEvent(String.Format("Cannot get input characteristic. Status {0} {1}",
-                    //        gattModeCharacteristicResult.Status, gattModeCharacteristicResult.ProtocolError));
-                    //    return;
-                    //}
-                    //gattModeCharacteristic = gattModeCharacteristicResult.Characteristics.FirstOrDefault();
-                    //logEvent(String.Format("characteristic {0} found", gattModeCharacteristic.Uuid));
-                    //try
-                    //{
-                    //    gattModeCharacteristic.ValueChanged += Mode_Characteristic_Value_Changed;
-                    //    var subResult = await gattModeCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
-
-                    //    logEvent("SUBSCRIBED to mode characteristic" + subResult.ToString());
-                    //}
-                    //catch (Exception e)
-                    //{
-                    //    logEvent("Exception subscribing to input characteristic " + e.Message);
-                    //    return;
-                    //}
-
-                    /////////////////////
 
                     gattModeCharacteristic.ValueChanged += Mode_Characteristic_Value_Changed;
                     await gattModeCharacteristic.WriteClientCharacteristicConfigurationDescriptorAsync
